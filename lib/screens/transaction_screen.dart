@@ -1,5 +1,8 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import '../database/database_helper.dart';
 import '../utils/category_types.dart';
 
@@ -7,15 +10,32 @@ class TransactionScreen extends StatefulWidget {
   const TransactionScreen({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _TransactionScreenState createState() => _TransactionScreenState();
 }
 
-class _TransactionScreenState extends State<TransactionScreen> {
+class _TransactionScreenState extends State<TransactionScreen> with SingleTickerProviderStateMixin {
   String _selectedType = 'Income';
   String? _selectedCategory;
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
+  late AnimationController _animationController;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+  }
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    _noteController.dispose();
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,15 +83,22 @@ class _TransactionScreenState extends State<TransactionScreen> {
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(15),
                         ),
-                        child: Text(
-                          'Income',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: _selectedType == 'Income' 
-                                ? Colors.green.shade500 
-                                : Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.arrow_upward, color: _selectedType == 'Income' ? Colors.green.shade500 : Colors.white),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Income',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: _selectedType == 'Income' 
+                                    ? Colors.green.shade500 
+                                    : Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -88,15 +115,22 @@ class _TransactionScreenState extends State<TransactionScreen> {
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(15),
                         ),
-                        child: Text(
-                          'Expense',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: _selectedType == 'Expense' 
-                                ? Colors.red.shade500 
-                                : Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.arrow_downward, color: _selectedType == 'Expense' ? Colors.red.shade500 : Colors.white),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Expense',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: _selectedType == 'Expense' 
+                                    ? Colors.red.shade500 
+                                    : Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -160,6 +194,17 @@ class _TransactionScreenState extends State<TransactionScreen> {
                 filled: true,
                 fillColor: Colors.grey[50],
               ),
+              onChanged: (value) {
+                if (isNumber && value.isNotEmpty && double.tryParse(value) == null) {
+                  Fluttertoast.showToast(
+                    msg: "Please enter a valid number",
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.BOTTOM,
+                    backgroundColor: Colors.red,
+                    textColor: Colors.white,
+                  );
+                }
+              },
             ),
           ],
         ),
@@ -265,12 +310,5 @@ class _TransactionScreenState extends State<TransactionScreen> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _amountController.dispose();
-    _noteController.dispose();
-    super.dispose();
   }
 }
